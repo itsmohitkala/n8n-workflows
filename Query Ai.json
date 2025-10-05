@@ -1,0 +1,370 @@
+{
+  "name": "Query Ai",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c812191f-d53b-4c74-aa99-869ab6b51a19",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        16
+      ],
+      "id": "172e1f11-e10c-41c3-9efc-c16475ec64e0",
+      "name": "Webhook1",
+      "webhookId": "c812191f-d53b-4c74-aa99-869ab6b51a19"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Here are the product details-\n{\n  \"product_name\": \"{{ $json.body.product.product_name }}\",\n  \"product_price\": \"{{ $json.body.product.price }}\",\n  \"warranty\": \"{{ $json.body.product.in_warranty }}\",\n  \"product_quantity\": \"{{ $json.body.product.quantity }}\",\n  \"category\": \"{{ $json.body.category }}\"\n}\n"
+            }
+          ]
+        },
+        "options": {
+          "systemMessage": "=You are an AI assistant that provides troubleshooting help for a product.\n\nTask:\n  Create 4 common troubleshooting questions and answers for this product, focusing on practical steps users can take before contacting support.\n\nGuidelines:\n- Keep it user-friendly and step-by-step.\n- Focus on product-specific issues (e.g., connectivity, charging, display, sound, etc.).\n- Answers should be simple and helpful.\n\nOutput format (JSON):\n{\n  \"category\": \"Troubleshooting\",\n  \"product\": \"{{ $json.product_namee }}\",\n  \"qa\": [\n    { \"question\": \"Issue 1...\", \"answer\": \"Fix 1...\" },\n    { \"question\": \"Issue 2...\", \"answer\": \"Fix 2...\" }\n  ]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        432,
+        16
+      ],
+      "id": "e45e23af-a10a-4eb7-88f1-cdfcc45f4fd7",
+      "name": "Troubleshoot",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bW01zsUXwdJeqk0l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Here are the product details-\n{\n  \"product_name\": \"{{ $json.body.product.product_name }}\",\n  \"product_price\": \"{{ $json.body.product.price }}\",\n  \"warranty\": \"{{ $json.body.product.in_warranty }}\",\n  \"product_quantity\": \"{{ $json.body.product.quantity }}\",\n  \"category\": \"{{ $json.body.category }}\"\n}\n"
+            }
+          ]
+        },
+        "options": {
+          "systemMessage": "=You are an AI assistant that helps customers understand and claim warranty for their purchased product.\n\nTask:\n# Note: The AI should automatically decide based on the value of warranty (true or false)\n\nCheck the value of \"Warranty Status\". \nIf it is **true**, provide a short and clear warranty claim guide for this product, including 3–5 steps and a placeholder support link.\nIf it is **false**, politely inform the customer that the product is no longer under warranty and suggest contacting support for paid repair or service options.\n\nGuidelines:\n- Keep your response simple and human-readable.\n- Do not make up fake details or brand names.\n- Always mention if the product is “under warranty” or “out of warranty”.\n- Provide a JSON-formatted response for consistency.\n\nOutput format (JSON):\n{\n  \"category\": \"Warranty Claim\",\n  \"product\": \"{{ $json.product_namee }}\",\n  \"in_warranty\":\"{{ $json.warranty }}\",\n  \"message\": \"Your product is under warranty / out of warranty.\",\n  \"instructions\": [\n    \"Step 1...\",\n    \"Step 2...\",\n    \"Step 3...\"\n  ],\n  \"support_link\": \"https://example.com/support\"\n}\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        432,
+        224
+      ],
+      "id": "1fc28359-4071-4af1-acf6-b5c11b43da7b",
+      "name": "Warranty Claim",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bW01zsUXwdJeqk0l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        576,
+        368
+      ],
+      "id": "9ccc1ef9-5fb7-46b9-b57a-2b74dbb5a391",
+      "name": "Think",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3799f6da-65da-4078-959e-85f612069d36",
+                    "leftValue": "={{ $json.body.category }}",
+                    "rightValue": "General Questions",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e506e24b-35f9-4fdd-abc6-9515562aaade",
+                    "leftValue": "={{ $json.body.category }}",
+                    "rightValue": "Troubleshoot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "2"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f9c7804d-5930-435b-874f-c1cfd75e2ac6",
+                    "leftValue": "={{ $json.body.category }}",
+                    "rightValue": "Warranty Claim",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ede861a8-b441-4d4e-be57-5f43df1acfd7",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"response\": {{ JSON.stringify($items('Troubleshoot').map(i => i.json.content.parts[0].text).join('\\n')) }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        992,
+        16
+      ],
+      "id": "47638ac5-57c3-4707-9c67-0a8db517142a",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        976,
+        224
+      ],
+      "id": "34903953-3530-42e5-b8e7-af319d94aacd",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Here are the product details-\n{\n  \"product_name\": \"{{ $json.body.product.product_name }}\",\n  \"product_price\": \"{{ $json.body.product.price }}\",\n  \"warranty\": \"{{ $json.body.product.in_warranty }}\",\n  \"product_quantity\": \"{{ $json.body.product.quantity }}\",\n  \"category\": \"{{ $json.body.category }}\"\n}\n"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {
+          "systemMessage": "=You are an AI assistant that answers general customer questions about a product.\n\nTask:\nGenerate 4 **general questions and answers** that an average customer might ask about this product.\n\nGuidelines:\n- Keep answers short, clear, and factual.\n- Use bullet points or a simple numbered list.\n- Example topics: usage, compatibility, features, packaging, delivery, etc.\n- Do not include warranty or troubleshooting information.\n\nOutput format (JSON):\n{\n  \"category\": \"General Questions\",\n  \"product\": \"{{ $json.body.product.product_name }}\",\n  \"qa\": [\n    { \"question\": \"Q1...\", \"answer\": \"A1...\" },\n    { \"question\": \"Q2...\", \"answer\": \"A2...\" }\n  ]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        416,
+        -160
+      ],
+      "id": "463794c3-84f3-4769-8d50-3ee953a810d2",
+      "name": "General Question",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bW01zsUXwdJeqk0l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"response\": {{ $json.content.parts[0].text }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        976,
+        -160
+      ],
+      "id": "e3a115bd-40b6-4b8f-a6aa-74843824f2c6",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Troubleshoot": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Warranty Claim": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Warranty Claim",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Troubleshoot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "General Question",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Troubleshoot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Warranty Claim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "General Question": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "90149124-22aa-4394-a5d0-923b11ff5406",
+  "meta": {
+    "instanceId": "d418db9b4fb85c910f43c83e2a58ee35c73a7b58e645f00e73ac13f6335a6e5c"
+  },
+  "id": "9zRqloVkVA9BTFMw",
+  "tags": []
+}
