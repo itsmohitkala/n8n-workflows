@@ -1,1 +1,374 @@
-
+{
+  "name": "Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "8342155b-9e41-46d2-bbd2-a3d98a35f89e",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -384,
+        0
+      ],
+      "id": "299fcc24-4a0b-410d-9819-6a13d0695c40",
+      "name": "Webhook",
+      "webhookId": "8342155b-9e41-46d2-bbd2-a3d98a35f89e"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are the AI assistant for a construction company. Your role is to help with administrative, operational, and business tasks efficiently and professionally. You have access to the following tools:\n\n**Tools**\n\nReply a Mail – to reply to incoming emails.\n\nSend a Mail – send new emails on behalf of the company.\n\nKnowledge Base – Retrieve and provide information about company processes, projects, or general construction knowledge.\n\nCalculator – Perform basic math, percentages, estimations, and unit conversions.\n\nMails Database – Access stored emails to summarize, search, or extract information.\n\nDate & Time – Provide current date, time, or schedule-related information.\n\n**Your Responsibilities**\n\n\"Give all responses in plain, simple text. Do not use \\n, Markdown formatting, or special characters. Use short sentences and simple bullet points with - if needed. \n\nHandle emails professionally, summarizing, replying, or sending new ones as requested.\n\nAnswer business-related questions, provide solutions for project planning, budgeting, or client queries.\n\nPerform calculations and assist in estimations for construction projects.\n\nRetrieve and summarize information from the knowledge base or mails database.\n\nAlways confirm critical actions (like sending important emails) with the user before proceeding.\n\nRespond concisely, clearly, and with actionable suggestions.\n\nKeep a professional but approachable tone.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "5f764a49-30fb-47c0-aa25-6bc0bfff85ed",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        288
+      ],
+      "id": "9a281f0c-173e-49aa-a87c-4c32fed71688",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bW01zsUXwdJeqk0l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1136,
+        0
+      ],
+      "id": "f1170f28-fc3a-4702-b3a6-f61342efc0ed",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1hKMEgAOdLC66G4fn2Knd_eG2bhg32ibRy0RVGCLUW0s/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hKMEgAOdLC66G4fn2Knd_eG2bhg32ibRy0RVGCLUW0s/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        576,
+        288
+      ],
+      "id": "af9cd6b6-b9dc-43f6-99b3-30f28ce42f9c",
+      "name": "Mails Database ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Hg5pFZanyRUntpv2",
+          "name": "Google Sheets account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        288
+      ],
+      "id": "301f7838-0740-4cc3-a741-7bfcae69376c",
+      "name": "Send a mail",
+      "webhookId": "39b598cb-cbf3-413f-ba74-4177315f551e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "a5K94vn7htEVg7eG",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        288
+      ],
+      "id": "5519a84c-7c46-43a0-9287-66965ebb5a2f",
+      "name": "Reply a mail",
+      "webhookId": "39b598cb-cbf3-413f-ba74-4177315f551e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "a5K94vn7htEVg7eG",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1rqKeCIjlaSd2m7AxtgS9ZZPOskl7Nb6YmqlKpkWt5b0/edit?ouid=114275588206424710652&usp=sheets_home&ths=true",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rqKeCIjlaSd2m7AxtgS9ZZPOskl7Nb6YmqlKpkWt5b0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        288
+      ],
+      "id": "e97889bf-04f6-483b-a450-17ee8aadf774",
+      "name": "Knowledge base",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Hg5pFZanyRUntpv2",
+          "name": "Google Sheets account 6"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        336,
+        288
+      ],
+      "id": "4ff5d58a-f48d-468d-8801-c4fb779c0cf7",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTimeTool",
+      "typeVersion": 2,
+      "position": [
+        704,
+        288
+      ],
+      "id": "67ba0a84-6d8f-46fc-936b-8f807a2b292d",
+      "name": "Date & Time"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.headers['x-forwarded-server'] }}",
+        "contextWindowLength": 7
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        464
+      ],
+      "id": "ac9cddbe-a1cb-4af4-ab09-8a2096542a0d",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        256,
+        464
+      ],
+      "id": "0a4c7ee8-4236-4316-a32c-d112bcdbea1a",
+      "name": "Fall back Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bW01zsUXwdJeqk0l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mails Database ": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a mail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply a mail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knowledge base": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fall back Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b77679d0-2827-44f6-b22c-ab10680baba4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d418db9b4fb85c910f43c83e2a58ee35c73a7b58e645f00e73ac13f6335a6e5c"
+  },
+  "id": "O8b4WCcKx10gR7XH",
+  "tags": []
+}
