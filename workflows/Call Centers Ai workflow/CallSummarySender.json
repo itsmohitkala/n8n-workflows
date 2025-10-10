@@ -1,1 +1,555 @@
-
+{
+  "name": "CallSummarySender",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "16G7WnTb8KN7NRGp1FLVMHm9VAYzKn6NO",
+          "mode": "list",
+          "cachedResultName": "Call Recordings",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/16G7WnTb8KN7NRGp1FLVMHm9VAYzKn6NO"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "212430d6-4483-49b8-8d5d-a00a07a73d24",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "ukmcXbD4G3c2MUFQ",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d0d749ba-93dd-4275-8cbe-c6f8138618bd",
+              "name": "file_name",
+              "value": "={{ $json.originalFilename }}",
+              "type": "string"
+            },
+            {
+              "id": "df48a686-525e-4559-9509-b936ecd1e2b4",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "58c495ff-8535-4c30-9422-634869d1752d",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "acf2bd1f-35f7-4284-9c97-a9e85e654835",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "ca0355ea-6fbe-4675-856a-8cec478f5aac",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "ukmcXbD4G3c2MUFQ",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepgram.com/v1/listen?punctuate=true&utterances=true&diarize=true&smart_format=true",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Token 3f14e8d0e800777f9aee53917617c74eb9f85f28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "2f44a74a-0b6c-40a1-a088-c4647c339520",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const alternative = $json.results.channels[0].alternatives[0];\nconst words = alternative.words;\n\n// Full transcript\nconst transcript = alternative.transcript;\n\n// Names to detect\nconst names = [\"Mohit\",\"Sagar\",\"Arjun\",\"Vishal\",\"Purvansh\",\"Kartik\",\"Krish\",\"Pushpa\",\"Steven\"];\n\nlet nameDetected = null;\nlet nameConfidence = 0;\n\n// Loop through names to find a match in transcript\nfor (const name of names){\n    const regex = new RegExp(`\\\\b${name}\\\\b`, 'i'); // word boundary, case-insensitive\n    if (regex.test(transcript)){\n        nameDetected = name;\n        // Find the first occurrence in words array to get confidence\n        const wordMatch = words.find(w => w.word.toLowerCase().includes(name.toLowerCase()));\n        if(wordMatch){\n            nameConfidence = wordMatch.confidence;\n        }\n        break;\n    }\n}\n\nreturn [{\n    transcript,\n    nameDetected,\n    nameConfidence\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "0a9b3ae3-0e70-4070-9174-95f0ea4805c8",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "75b52771-c5af-47c7-b6f5-ca125e2bf4a7",
+              "name": "Transcription",
+              "value": "={{ $json.transcript }}",
+              "type": "string"
+            },
+            {
+              "id": "80675681-c333-4af1-bf97-e31c69353fa2",
+              "name": "Confidence",
+              "value": "={{ $json.nameConfidence }}",
+              "type": "number"
+            },
+            {
+              "id": "d630510b-2e33-46f1-9429-77991583ba4b",
+              "name": "Speaker",
+              "value": "={{ $json.nameDetected }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "8ce848cc-9ad1-4fb1-9a1a-b5693794e865",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d0b31a9c-a982-46b9-b34e-5830906dedc4",
+              "leftValue": "={{ $json.Confidence }}",
+              "rightValue": 0.75,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1296,
+        16
+      ],
+      "id": "dc0e4db8-5a08-4132-8b33-762234126ee1",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        272
+      ],
+      "id": "a6685dc5-86b1-4497-9b8e-a8c803e10c5c",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here are the details for this call:\n\n- Possible speakers and their Gmail IDs:\n    Mohit: mola@gmail.com\n    Sagar: sagar@gmail.com\n    Arjun: arjun@gmail.com\n    Vishal: vishal@gmail.com\n    Purvansh: purvansh@gmail.com\n    Kartik: kartik@gmail.com\n    Krish: krish@gmail.com\n    Pushpa: pushpa@gmail.com\n    Steven: stfumohit@gmail.com\n\n- Detected speaker of this call: {{ $('Edit Fields3').item.json.Speaker }}\n- Confidence on name detection: {{ $('Edit Fields3').item.json.Confidence }}\n- Call transcription: {{ $('Edit Fields3').item.json.Transcription }}\n\nTasks:\n\n1. Summarize the call professionally and concisely.\n2. Create a ready-to-send email for the detected speaker using their Gmail ID.\n3. Your output must be **formatted for direct use in the \"Send Mail\" node**.\n4. The email must include:\n   - Greeting using the detected speaker’s name\n   - Summary of the call\n   - Full transcript\n   - Confidence on speaker detection\n\n5. Respond ONLY in JSON format.\n\n\n\nConstraints:\n- Only include the detected speaker\n- Do not include other names\n- Keep the email professional, concise, and ready to send\n- Ensure the JSON keys exactly match the Send Mail node fields: 'to', 'subject', 'body'\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an automated assistant that generates professional call summaries and sends them using the \"Send Mail\" tool in an automation workflow. \nYour output will be used directly in the Send Mail node to send the email automatically to the detected speaker's Gmail. \nAlways respond with valid JSON only, in the exact format required by the Send Mail node.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1504,
+        -80
+      ],
+      "id": "a04aa0a8-d43b-45a6-8f52-f790400cafc2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        112
+      ],
+      "id": "cb21ac7e-ce13-40f2-a5ed-447b38356f64",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bW01zsUXwdJeqk0l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"to\": \"xyz@gmail.com\",\n    \"subject\": \"insdustry faces\",\n    \"body\": \"mohit taked about this and that and client said okay we can meet at this date \"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1680,
+        160
+      ],
+      "id": "d5c0eba6-d0a7-4567-93b4-013876e354fb",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.output.to }}",
+        "subject": "={{ $json.output.subject }}",
+        "message": "={{ $json.output.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1856,
+        -80
+      ],
+      "id": "874a5e2e-7571-402a-ad44-25c19dfd67d7",
+      "name": "Send a message",
+      "webhookId": "e26e3881-980f-4639-8b66-54f37ce37be9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "a5K94vn7htEVg7eG",
+          "name": "Gmail account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Google Drive Trigger": [
+      {
+        "json": {
+          "parents": [
+            "16G7WnTb8KN7NRGp1FLVMHm9VAYzKn6NO"
+          ],
+          "lastModifyingUser": {
+            "displayName": "Mohit",
+            "kind": "drive#user",
+            "me": true,
+            "permissionId": "04771935491257520028",
+            "emailAddress": "itsmohitkala@gmail.com",
+            "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocIuEp5piFUpNMCdDD7pOTaqob_zKrZuYYVvdgERQ6EkAfTsHA=s64"
+          },
+          "owners": [
+            {
+              "displayName": "Mohit",
+              "kind": "drive#user",
+              "me": true,
+              "permissionId": "04771935491257520028",
+              "emailAddress": "itsmohitkala@gmail.com",
+              "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocIuEp5piFUpNMCdDD7pOTaqob_zKrZuYYVvdgERQ6EkAfTsHA=s64"
+            }
+          ],
+          "permissions": [
+            {
+              "kind": "drive#permission",
+              "id": "04771935491257520028",
+              "type": "user",
+              "emailAddress": "itsmohitkala@gmail.com",
+              "role": "owner",
+              "displayName": "Mohit",
+              "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocIuEp5piFUpNMCdDD7pOTaqob_zKrZuYYVvdgERQ6EkAfTsHA=s64",
+              "deleted": false,
+              "pendingOwner": false
+            }
+          ],
+          "spaces": [
+            "drive"
+          ],
+          "capabilities": {
+            "canAcceptOwnership": false,
+            "canAddChildren": false,
+            "canAddMyDriveParent": false,
+            "canChangeCopyRequiresWriterPermission": true,
+            "canChangeItemDownloadRestriction": true,
+            "canChangeSecurityUpdateEnabled": false,
+            "canChangeViewersCanCopyContent": true,
+            "canComment": true,
+            "canCopy": true,
+            "canDelete": true,
+            "canDisableInheritedPermissions": false,
+            "canDownload": true,
+            "canEdit": true,
+            "canEnableInheritedPermissions": true,
+            "canListChildren": false,
+            "canModifyContent": true,
+            "canModifyContentRestriction": true,
+            "canModifyEditorContentRestriction": true,
+            "canModifyOwnerContentRestriction": true,
+            "canModifyLabels": false,
+            "canMoveChildrenWithinDrive": false,
+            "canMoveItemIntoTeamDrive": true,
+            "canMoveItemOutOfDrive": true,
+            "canMoveItemWithinDrive": true,
+            "canReadLabels": false,
+            "canReadRevisions": true,
+            "canRemoveChildren": false,
+            "canRemoveContentRestriction": false,
+            "canRemoveMyDriveParent": true,
+            "canRename": true,
+            "canShare": true,
+            "canTrash": true,
+            "canUntrash": true
+          },
+          "permissionIds": [
+            "04771935491257520028"
+          ],
+          "linkShareMetadata": {
+            "securityUpdateEligible": false,
+            "securityUpdateEnabled": true
+          },
+          "downloadRestrictions": {
+            "itemDownloadRestriction": {
+              "restrictedForReaders": false,
+              "restrictedForWriters": false
+            },
+            "effectiveDownloadRestrictionWithContext": {
+              "restrictedForReaders": false,
+              "restrictedForWriters": false
+            }
+          },
+          "kind": "drive#file",
+          "id": "1DJZTOnvMGMn7_P4yeNUbaLcH0nBeBNkj",
+          "name": "recording with client 2.mp3",
+          "mimeType": "audio/mpeg",
+          "starred": false,
+          "trashed": false,
+          "explicitlyTrashed": false,
+          "version": "1",
+          "webContentLink": "https://drive.google.com/uc?id=1DJZTOnvMGMn7_P4yeNUbaLcH0nBeBNkj&export=download",
+          "webViewLink": "https://drive.google.com/file/d/1DJZTOnvMGMn7_P4yeNUbaLcH0nBeBNkj/view?usp=drivesdk",
+          "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/audio/mpeg",
+          "hasThumbnail": false,
+          "thumbnailVersion": "0",
+          "viewedByMe": true,
+          "viewedByMeTime": "2025-10-10T04:47:27.900Z",
+          "createdTime": "2025-10-10T04:47:27.900Z",
+          "modifiedTime": "2025-10-10T04:44:52.000Z",
+          "modifiedByMeTime": "2025-10-10T04:44:52.000Z",
+          "modifiedByMe": true,
+          "shared": false,
+          "ownedByMe": true,
+          "viewersCanCopyContent": true,
+          "copyRequiresWriterPermission": false,
+          "writersCanShare": true,
+          "originalFilename": "recording with client 2.mp3",
+          "fullFileExtension": "mp3",
+          "fileExtension": "mp3",
+          "md5Checksum": "05fd0c4eaf9941a7e6361f16ca8849dd",
+          "sha1Checksum": "8fbc397a83fbc78697a228457f51b586c0fe8f6f",
+          "sha256Checksum": "93a290cb2e5ef29f393655bf417d64b4d840e8423c7f6cc25464328e94cb27fd",
+          "size": "1398209",
+          "quotaBytesUsed": "1398209",
+          "headRevisionId": "0BxAphhh_dM6VWXVVMlA1NkJPMDlrUncweDB6NHhrbEJmMnZjPQ",
+          "isAppAuthorized": false,
+          "inheritedPermissionsDisabled": false
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7c4b6597-9c42-410f-884e-4b8343817901",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d418db9b4fb85c910f43c83e2a58ee35c73a7b58e645f00e73ac13f6335a6e5c"
+  },
+  "id": "pWGiU8csjWsWc1KM",
+  "tags": []
+}
